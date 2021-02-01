@@ -82,12 +82,22 @@ class UserController extends Controller
         //
     }
 
-    public function pruebas(Request $request) {
-        return "Acción de prueBas de USER-CONTROLLER";
-    }
-
     public function register(Request $request) {
-        return "Usuario registrado correctamente";
+
+        $datos = $request->all();
+
+        $validate = \Validator::make($request->all(),[
+            'name' =>'required|alpha',
+            'surname' =>'required|alpha',
+            'email' =>'required|email',
+            'password' =>'required',
+        ]);
+
+        if($validate->fails()){
+            return response()->json($validate->errors(), 400);
+        }
+
+        return response()->json(['data'=>$datos, 'code' => 404]);
     }
 
     public function login(Request $request) {
