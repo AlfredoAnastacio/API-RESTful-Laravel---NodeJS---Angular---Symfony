@@ -187,4 +187,15 @@ class UserController extends Controller
         return response()->json($signup, 200);
     }
 
+    public function upload(Request $request) {
+
+        $data = array(
+            'status'  => 'error',
+            'code'    => 400,
+            'message' => 'Error al subir imagen.'
+        );
+
+        return response()->json($data, $data['code']);
+    }
+
 }
