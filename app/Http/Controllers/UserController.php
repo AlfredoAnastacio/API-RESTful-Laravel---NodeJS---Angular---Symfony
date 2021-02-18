@@ -105,9 +105,10 @@ class UserController extends Controller
 
             $user = new User();
             $user->name = $request->name;
-            $user->surname = $request->name;
-            $user->email = $request->name;
-            $user->password = Hash::make($request->password);
+            $user->surname = $request->surname;
+            $user->email = $request->email;
+            // $user->password = Hash::make($request->password);
+            $user->password = hash('sha256', $request->password);
             $user->role = 'ROLE_USER';
             $user->save();
 
@@ -122,7 +123,16 @@ class UserController extends Controller
     }
 
     public function login(Request $request) {
-        return "Usuario logueado correctamente";
+
+        $jwtAuth = new \JwtAuth();
+
+        $email = 'test1@gmail.com';
+        $password = '12345678';
+        $pwd = hash('sha256', $password);
+
+        // var_dump($pwd); die();
+
+        return response()->json($jwtAuth->signup($email, $pwd, true));
     }
 
 }
