@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use App\User;
 
 class UserController extends Controller
 {
@@ -84,20 +87,38 @@ class UserController extends Controller
 
     public function register(Request $request) {
 
-        $datos = $request->all();
-
-        $validate = \Validator::make($request->all(),[
+        $validate = Validator::make($request->all(),[
             'name' =>'required|alpha',
             'surname' =>'required|alpha',
-            'email' =>'required|email',
+            'email' =>'required|email|unique:users',
             'password' =>'required',
         ]);
 
-        if($validate->fails()){
-            return response()->json($validate->errors(), 400);
+        if ($validate->fails()){
+            $data = array(
+                'status'  => 'error',
+                'code'    => 404,
+                'message' => 'El usuario no se ha creado',
+                'errors' => $validate->errors()
+            );
+        } else {
+
+            $user = new User();
+            $user->name = $request->name;
+            $user->surname = $request->name;
+            $user->email = $request->name;
+            $user->password = Hash::make($request->password);
+            $user->role = 'ROLE_USER';
+            $user->save();
+
+            $data = array(
+                'status'  => 'success',
+                'code'    => 200,
+                'message' => 'El usuario se ha creado correctamente'
+            );
         }
 
-        return response()->json(['data'=>$datos, 'code' => 404]);
+        return response()->json($data, $data['code']);
     }
 
     public function login(Request $request) {
