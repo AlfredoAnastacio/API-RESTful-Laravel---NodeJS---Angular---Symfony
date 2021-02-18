@@ -69,9 +69,42 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        //Comprobar que el usuario este autenticado
+        $token = $request->header('Authorization');
+        $jwtAuth = new \JwtAuth();
+
+        $checkToken = $jwtAuth->checkToken($token);
+
+        if ($checkToken) {
+
+            $user = $jwtAuth->checkToken($token, true);
+
+            $validate = \Validator::make($request->all(), [
+                'name' => 'required|alpha',
+                'surname' => 'required|alpha',
+                'email' => 'required|email|unique:users,'.$user->sub
+            ]);
+
+            $user_update = User::where('id', $user->sub)->update($request->all());
+
+
+            $data = array(
+                'code' => 200,
+                'status' => 'success',
+                'user' => $user_update
+            );
+
+        } else {
+            $data = array(
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'El usuario no está identificado.'
+            );
+        }
+
+        return response()->json($data, $data['code']);
     }
 
     /**
@@ -126,13 +159,32 @@ class UserController extends Controller
 
         $jwtAuth = new \JwtAuth();
 
-        $email = 'test1@gmail.com';
-        $password = '12345678';
-        $pwd = hash('sha256', $password);
+        $email = $request->email;
+        $password = $request->password;
 
-        // var_dump($pwd); die();
+        $validate = Validator::make($request->all(),[
+            'email' =>'required|email',
+            'password' =>'required',
+        ]);
 
-        return response()->json($jwtAuth->signup($email, $pwd, true));
+        if ($validate->fails()){
+            $signup = array(
+                'status'  => 'error',
+                'code'    => 404,
+                'message' => 'El usuario no se ha podido identificar',
+                'errors' => $validate->errors()
+            );
+        } else {
+            $pwd = hash('sha256', $password);
+            $signup = $jwtAuth->signup($email, $pwd);
+
+            if (!empty($getToken)) {
+                $signup = $jwtAuth->signup($email, $pwd, true);
+            }
+
+        }
+
+        return response()->json($signup, 200);
     }
 
 }

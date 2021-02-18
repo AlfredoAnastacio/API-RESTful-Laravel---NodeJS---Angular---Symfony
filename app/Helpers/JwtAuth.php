@@ -54,9 +54,31 @@ class JwtAuth {
                 'message' => 'Login incorrecto.'
             );
         }
-
-
         return $data;
+    }
+
+    public function checkToken($jwt, $getIdentity = false) {
+        $auth = false;
+
+        try {
+            $decoded = JWT::decode($jwt, $this->key, ['HS256']);
+        } catch(\UnexpectedValueException $e){
+            $auth = false;
+        } catch(\DomainException $e){
+            $auth = false;
+        }
+
+        if (!empty($decoded) && is_object($decoded)  && isset($decoded->sub)) {
+            $auth = true;
+        } else {
+            $auth = false;
+        }
+
+        if ($getIdentity) {
+            return $decoded;
+        }
+
+        return $auth;
     }
 
 }
