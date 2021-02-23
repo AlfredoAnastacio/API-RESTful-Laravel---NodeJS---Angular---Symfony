@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use App\Category;
 
 class CategoryController extends Controller
 {
@@ -13,7 +15,13 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::all();
+
+        return response()->json([
+            'code' => 200,
+            'status' => 'success',
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -80,9 +88,5 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         //
-    }
-
-    public function pruebas(Request $request) {
-        return "Acción de prueBas de CATEGORY-CONTROLLER";
     }
 }
