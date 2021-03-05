@@ -53,7 +53,23 @@ class CategoryController extends Controller
      */
     public function show($id)
     {
-        //
+        $category = Category::find($id);
+
+        if (is_object($category)) {
+            $data = [
+                'code' => 200,
+                'status' => 'success',
+                'category' => $category
+            ];
+        } else {
+            $data = [
+                'code' => 404,
+                'status' => 'error',
+                'category' => 'La categoria no existe'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
     }
 
     /**
