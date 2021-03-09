@@ -120,7 +120,40 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        // return response()->json($id);
+        // return response()->json($request->name);
+
+        if ($id != null) {
+            $validate = Validator::make($request->all(),[
+                'name' => 'required'
+            ]);
+
+            if ($validate->fails()){
+                $data = [
+                    'code'    => 404,
+                    'status'  => 'error',
+                    'message' => 'No se ha guardado la categoría, el parámetro name es obligatorio.'
+                ];
+            } else {
+                $name = $request->name;
+                $category = Category::where('id', $id)->update($request->all());
+
+                $data = [
+                    'code'    => 200,
+                    'status'  => 'success',
+                    'category'=> $request->name
+                ];
+            }
+        } else {
+            $data = [
+                'code'    => 400,
+                'status'  => 'error',
+                'message' => 'No has enviado ninguna categoría.'
+            ];
+        }
+
+        return response()->json($data, 200);
     }
 
     /**
