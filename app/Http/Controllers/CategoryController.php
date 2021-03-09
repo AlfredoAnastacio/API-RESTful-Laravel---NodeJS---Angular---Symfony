@@ -120,10 +120,6 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-
-        // return response()->json($id);
-        // return response()->json($request->name);
-
         if ($id != null) {
             $validate = Validator::make($request->all(),[
                 'name' => 'required'
@@ -136,7 +132,6 @@ class CategoryController extends Controller
                     'message' => 'No se ha guardado la categoría, el parámetro name es obligatorio.'
                 ];
             } else {
-                $name = $request->name;
                 $category = Category::where('id', $id)->update($request->all());
 
                 $data = [
