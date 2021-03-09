@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 use App\Category;
 
 class CategoryController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('api.auth', ['except' => ['index', 'show']]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -42,7 +47,30 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validate = Validator::make($request->all(),[
+            'name' => 'required'
+        ]);
+
+        if ($validate->fails()){
+            $data = array(
+                'code'    => 404,
+                'status'  => 'error',
+                'message' => 'No se ha guardado la categoría, el parámetro name es obligatorio.'
+            );
+        } else {
+
+            $category = new Category();
+            $category->name = $request->name;
+            $category->save();
+
+            $data = array(
+                'code'    => 200,
+                'status'  => 'success',
+                'category' => $category
+            );
+        }
+
+        return response()->json($data, 200);
     }
 
     /**
