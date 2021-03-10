@@ -141,7 +141,42 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if (!empty($request->all())) {
+            $validate = Validator::make($request->all(),[
+                'title' => 'required',
+                'content' => 'required',
+                'category_id' => 'required'
+            ]);
+
+            if ($validate->fails()) {
+                $data = [
+                    'code' => 400,
+                    'status' => 'error',
+                    'message' => 'Imposible actualizar, faltan datos.'
+                ];
+            } else {
+
+                unset($request->id);
+                unset($request->user_id);
+                unset($request->created_at);
+
+                $post = Post::where('id', $id)->update($request->all());
+
+                $data = [
+                    'code' => 200,
+                    'status' => 'success',
+                    'post' => $request->all()
+                ];
+            }
+        } else {
+            $data = [
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'Debe enviar los datos correctamente.'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
     }
 
     /**
