@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 use App\Helpers\JwtAuth;
 use App\Post;
 
@@ -12,7 +13,7 @@ class PostController extends Controller
 
     public function __construct()
     {
-        $this->middleware('api.auth', ['except' => ['index', 'show']]);
+        $this->middleware('api.auth', ['except' => ['index', 'show', 'getImage']]);
     }
 
 
@@ -267,6 +268,23 @@ class PostController extends Controller
         }
 
         return response()->json($data, $data['code']);
+    }
 
+    public function getImage($filename) {
+
+        $isset = \Storage::disk('images')->exists($filename);
+
+        if ($isset) {
+            $file = \Storage::disk('images')->get($filename);
+
+            return new Response($file, 200);
+        } else {
+            $data = [
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'La imagen no existe.'
+            ];
+        }
+        return response()->json($data, $data['code']);
     }
 }
