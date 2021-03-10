@@ -51,9 +51,8 @@ class PostController extends Controller
     public function store(Request $request)
     {
         if (!empty($request->all())) {
-            $jwtAuth = new JwtAuth();
-            $token = $request->header('Authorization', null);
-            $user = $jwtAuth->checkToken($token, true);
+
+            $user = $this->getIdentity($request);
 
             $validate = Validator::make($request->all(),[
                 'title' => 'required',
@@ -141,6 +140,14 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
+
+        $user = $this->getIdentity($request);
+
+        $post = Post::where('id', $id)
+                        ->where('user_id', $user->sub)
+                        ->first();
+
+
         if (!empty($request->all())) {
             $validate = Validator::make($request->all(),[
                 'title' => 'required',
@@ -160,13 +167,23 @@ class PostController extends Controller
                 unset($request->user_id);
                 unset($request->created_at);
 
-                $post = Post::where('id', $id)->update($request->all());
+                $user = $this->getIdentity($request);
 
-                $data = [
-                    'code' => 200,
-                    'status' => 'success',
-                    'post' => $request->all()
-                ];
+                $post = Post::where('id', $id)
+                        ->where('user_id', $user->sub)
+                        ->first();
+
+                if (!empty($post) && is_object($post)) {
+
+                    $post->update($request->all());
+
+                    $data = [
+                        'code' => 200,
+                        'status' => 'success',
+                        'post' => $post,
+                        'changes' => $request->all(),
+                    ];
+                }
             }
         } else {
             $data = [
@@ -185,9 +202,14 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
-        $post = Post::find($id);
+
+        $user = $this->getIdentity($request);
+
+        $post = Post::where('id', $id)
+                        ->where('user_id', $user->sub)
+                        ->first();
 
         if (!empty($post)) {
 
@@ -207,6 +229,14 @@ class PostController extends Controller
         }
 
         return response()->json($data, $data['code']);
+    }
 
+    private function getIdentity($request){
+
+        $jwtAuth = new JwtAuth();
+        $token = $request->header('Authorization', null);
+        $user = $jwtAuth->checkToken($token, true);
+
+        return $user;
     }
 }
