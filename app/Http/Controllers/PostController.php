@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Helpers\JwtAuth;
 use App\Post;
 
 class PostController extends Controller
@@ -48,7 +50,48 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        if (!empty($request->all())) {
+            $jwtAuth = new JwtAuth();
+            $token = $request->header('Authorization', null);
+            $user = $jwtAuth->checkToken($token, true);
+
+            $validate = Validator::make($request->all(),[
+                'title' => 'required',
+                'content' => 'required',
+                'category_id' => 'required',
+                'image' => 'required'
+            ]);
+
+            if ($validate->fails()) {
+                $data = [
+                    'code' => 400,
+                    'status' => 'error',
+                    'message' => 'No se ha guardado el post, faltan datos'
+                ];
+            } else {
+                $post = new Post();
+                $post->user_id = $user->sub;
+                $post->category_id = $request->category_id;
+                $post->title = $request->title;
+                $post->content = $request->content;
+                $post->image = $request->image;
+                $post->save();
+
+                $data = [
+                    'code' => 200,
+                    'status' => 'success',
+                    'post' => $post
+                ];
+            }
+        } else {
+            $data = [
+                'code' => 400,
+                'status' => 'error',
+                'message' => 'Envía los datos correctamente'
+            ];
+        }
+
+        return response()->json($data, $data['code']);
     }
 
     /**
