@@ -119,7 +119,11 @@ class UserController extends Controller
 
     public function register(Request $request) {
 
-        $validate = Validator::make($request->all(),[
+        $json = $request->input('json', null);
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
+
+        $validate = Validator::make($params_array,[
             'name' =>'required|alpha',
             'surname' =>'required|alpha',
             'email' =>'required|email|unique:users',
@@ -136,11 +140,10 @@ class UserController extends Controller
         } else {
 
             $user = new User();
-            $user->name = $request->name;
-            $user->surname = $request->surname;
-            $user->email = $request->email;
-            // $user->password = Hash::make($request->password);
-            $user->password = hash('sha256', $request->password);
+            $user->name = $params_array['name'];
+            $user->surname = $params_array['surname'];
+            $user->email = $params_array['email'];
+            $user->password = hash('sha256', $params_array['password']);
             $user->role = 'ROLE_USER';
             $user->save();
 
@@ -256,7 +259,7 @@ class UserController extends Controller
                 'image'  => 'El usuario no existe.'
             );
         }
-        
+
         return response()->json($data, $data['code']);
     }
 
