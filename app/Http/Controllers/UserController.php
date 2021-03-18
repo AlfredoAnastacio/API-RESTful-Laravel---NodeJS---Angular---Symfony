@@ -161,10 +161,12 @@ class UserController extends Controller
 
         $jwtAuth = new \JwtAuth();
 
-        $email = $request->email;
-        $password = $request->password;
+         // Recibir datos por post
+         $json = $request->input('json', null);
+         $params = json_decode($json);
+         $params_array = json_decode($json, true);
 
-        $validate = Validator::make($request->all(),[
+         $validate = Validator::make($params_array,[
             'email' =>'required|email',
             'password' =>'required',
         ]);
@@ -177,16 +179,15 @@ class UserController extends Controller
                 'errors' => $validate->errors()
             );
         } else {
-            $pwd = hash('sha256', $password);
-            $signup = $jwtAuth->signup($email, $pwd);
+            $pwd = hash('sha256', $params->password);
+            $signup = $jwtAuth->signup($params->email, $pwd);
 
-            if (!empty($getToken)) {
-                $signup = $jwtAuth->signup($email, $pwd, true);
+            if (!empty($params->getToken)) {
+                $signup = $jwtAuth->signup($params->email, $pwd, true);
             }
-
         }
 
-        return response()->json($signup, 200);
+        return response()->json(['Token' => $signup, 'data' => $jwtAuth->signup($params->email, $pwd, true)], 200);
     }
 
     public function upload(Request $request) {
